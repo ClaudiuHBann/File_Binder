@@ -12,10 +12,10 @@
           DragEnter="OnDragEnterGrid"
           Drop="OnDropGrid">
 
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="75*" />
-            <ColumnDefinition Width="25*" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70*" />
+            <RowDefinition Height="30*" />
+        </Grid.RowDefinitions>
 
         <!-- List of files -->
         <Grid>
@@ -27,6 +27,7 @@
 
             <TextBlock Text="The following files are going to be binded:"
                        VerticalAlignment="Center"
+                       HorizontalAlignment="Center"
                        FontSize="18"
                        Padding="25,0,0,0" />
 
@@ -44,24 +45,23 @@
         </Grid>
 
         <!-- Menu -->
-        <Grid Grid.Column="1">
+        <Grid Grid.Row="1">
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="30*" />
                 <RowDefinition Height="30*" />
-                <RowDefinition Height="15*" />
-                <RowDefinition Height="20*" />
+                <RowDefinition Height="35*" />
             </Grid.RowDefinitions>
 
             <Grid>
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="33*" />
-                    <RowDefinition Height="66*" />
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18*" />
+                    <ColumnDefinition Width="82*" />
+                </Grid.ColumnDefinitions>
 
                 <Button Content="Save As"
-                        FontSize="18"
+                        FontSize="20"
                         VerticalAlignment="Stretch"
                         HorizontalAlignment="Stretch"
                         Click="OnClickButtonSaveAs" />
@@ -70,16 +70,16 @@
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
-                           Grid.Row="1" />
+                           Grid.Column="1" />
 
             </Grid>
 
             <Grid Grid.Row="1">
 
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="33*" />
-                    <RowDefinition Height="66*" />
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18*" />
+                    <ColumnDefinition Width="82*" />
+                </Grid.ColumnDefinitions>
 
                 <Button Content="Opener"
                         FontSize="20"
@@ -91,22 +91,32 @@
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
                            TextWrapping="Wrap"
-                           Grid.Row="1" />
+                           IsTextSelectionEnabled="True"
+                           Grid.Column="1" />
 
             </Grid>
 
-            <Button Grid.Row="2"
-                    Content="Bind"
-                    FontSize="20"
-                    VerticalAlignment="Stretch"
-                    HorizontalAlignment="Stretch"
-                    Click="OnClickButtonBind" />
+            <Grid Grid.Row="3">
 
-            <ProgressRing x:Name="progressRing"
-                          Grid.Row="3"
-                          IsIndeterminate="False"
-                          Value="100"
-                          Maximum="100" />
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18*"/>
+                    <ColumnDefinition Width="82*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Content="Bind"
+                        FontSize="20"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Click="OnClickButtonBind" />
+
+                <ProgressBar x:Name="progressBar"
+                              Grid.Column="1"
+                              IsIndeterminate="False"
+                              Padding="5,0,10,0"
+                              Value="100"
+                              Maximum="100" />
+
+            </Grid>
 
         </Grid>
 

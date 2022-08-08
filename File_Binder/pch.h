@@ -36,6 +36,7 @@
 #include <winrt/Microsoft.UI.Xaml.Interop.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.h>
 #include <winrt/Microsoft.UI.Xaml.Navigation.h>
+#include <winrt/Microsoft.Ui.Xaml.Media.Imaging.h>
 #include <winrt/Microsoft.UI.Xaml.Controls.Primitives.h>
 
 // wil

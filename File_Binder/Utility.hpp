@@ -11,6 +11,20 @@ public:
 	Utility() {}
 	~Utility() {}
 
+	static inline ::winrt::Windows::Foundation::IAsyncOperation<::winrt::Microsoft::UI::Xaml::Media::ImageSource>
+		GetIconFromFile(
+			const ::winrt::hstring& file,
+			::winrt::Windows::Storage::FileProperties::ThumbnailMode thumbnailMode = ::winrt::Windows::Storage::FileProperties::ThumbnailMode::DocumentsView
+		) {
+		const auto& fileStorage = co_await ::winrt::Windows::Storage::StorageFile::GetFileFromPathAsync(file);
+		const auto& fileThumbnail = co_await fileStorage.GetThumbnailAsync(thumbnailMode);
+
+		::winrt::Microsoft::UI::Xaml::Media::Imaging::BitmapImage bitmapImage;
+		bitmapImage.SetSource(fileThumbnail);
+
+		co_return bitmapImage;
+	}
+
 	// Gets the window handle associated with the MainWindow class
 	static inline ::HWND GetWindowHandle(::winrt::File_Binder::implementation::MainWindow* mainWindow) {
 		// get the native window and check the value

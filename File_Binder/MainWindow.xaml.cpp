@@ -8,6 +8,69 @@
 
 namespace winrt::File_Binder::implementation
 {
+	// A small wrapper to create a ColumnDefinition object
+	::winrt::Microsoft::UI::Xaml::Controls::ColumnDefinition CreateDefinitionColumn(const double width) {
+		::winrt::Microsoft::UI::Xaml::Controls::ColumnDefinition definitionColumn;
+		definitionColumn.Width({ width });
+
+		return definitionColumn;
+	}
+
+	// A small wrapper to create a Thickness object
+	::winrt::Microsoft::UI::Xaml::Thickness CreateThickness(const double left = 0., const double top = 0., const double right = 0., const double bottom = 0.) {
+		::winrt::Microsoft::UI::Xaml::Thickness thickness{ left, top, right, bottom };
+		return thickness;
+	}
+
+	// Get the file path from the list view item
+	::winrt::hstring GetFilePath(::winrt::File_Binder::implementation::MainWindow* mainWindow, const uint32_t index) {
+		// get, convert, get, convert, get, convert and finally get the text
+		const auto& ii = mainWindow->listViewFiles().ContainerFromIndex(index);
+		const auto& listViewItem = ii.try_as<::winrt::Microsoft::UI::Xaml::Controls::ListViewItem>();
+		const auto& root = listViewItem.ContentTemplateRoot();
+		const auto& grid = root.try_as<::winrt::Microsoft::UI::Xaml::Controls::Grid>();
+		const auto& textBlockII = grid.Children().GetAt(1);
+		const auto& textBlock = textBlockII.try_as<::winrt::Microsoft::UI::Xaml::Controls::TextBlock>();
+
+		return textBlock.Text();
+	}
+
+	// Create a listviewitem and append it
+	::winrt::Windows::Foundation::IAsyncAction AddItemToListView(::winrt::File_Binder::implementation::MainWindow* mainWindow, ::winrt::hstring filePath) {
+		// File icon
+		::winrt::Microsoft::UI::Xaml::Controls::Image icon;
+		// set size
+		icon.Width(40);
+		icon.Height(40);
+		// set icon
+		icon.Source(co_await Utility::GetIconFromFile(filePath));
+
+		// create the text block with the file path
+		::winrt::Microsoft::UI::Xaml::Controls::TextBlock path;
+		// set the text block text and vertical alignment and add a small left padding
+		path.Text(filePath);
+		path.VerticalAlignment(::winrt::Microsoft::UI::Xaml::VerticalAlignment::Center);
+		path.Padding(CreateThickness(10.));
+
+		// create a layout 
+		::winrt::Microsoft::UI::Xaml::Controls::Grid layout;
+		// set the column definitions of the layout
+		layout.ColumnDefinitions().Append(CreateDefinitionColumn(10));
+		layout.ColumnDefinitions().Append(CreateDefinitionColumn(90));
+		// add the children to the layout
+		layout.Children().Append(icon);
+
+		layout.Children().Append(path);
+		layout.SetColumn(path, 1);
+
+		// create the list view item and set it's content to out layout
+		::winrt::Microsoft::UI::Xaml::Controls::ListViewItem item;
+		item.Content(layout);
+
+		// add the list view item to the list view
+		mainWindow->listViewFiles().Items().Append(item);
+	}
+
 	MainWindow::MainWindow()
 	{
 		InitializeComponent();
@@ -16,12 +79,11 @@ namespace winrt::File_Binder::implementation
 		hWnd = Utility::GetWindowHandle(this);
 
 		// no resize and maximize button
-		auto windowLong = ::GetWindowLong(hWnd, GWL_STYLE);
+		const auto windowLong = ::GetWindowLong(hWnd, GWL_STYLE);
 		::SetWindowLong(hWnd, GWL_STYLE, windowLong & ~WS_SIZEBOX & ~WS_MAXIMIZEBOX);
 
 		// resize and set in middle of screen
 		Utility::CenterWindow(hWnd, { 640, 480 });
-
 	}
 
 	void MainWindow::OnDragEnterGrid(
@@ -45,14 +107,14 @@ namespace winrt::File_Binder::implementation
 			for (const auto& item : items) {
 				// Add only the files
 				if (const auto& file = item.try_as<::winrt::Windows::Storage::StorageFile>()) {
-					listViewFiles().Items().Append(::winrt::box_value(file.Path()));
+					AddItemToListView(this, file.Path());
+
+					// hide the placeholder of the list view
+					if (textBlockListViewFilesPlaceholder().Visibility() == ::winrt::Microsoft::UI::Xaml::Visibility::Visible) {
+						textBlockListViewFilesPlaceholder().Visibility(::winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
+					}
 				}
 			}
-		}
-
-		// hide the placeholder of the list view
-		if (listViewFiles().Items().Size()) {
-			textBlockListViewFilesPlaceholder().Visibility(::winrt::Microsoft::UI::Xaml::Visibility::Collapsed);
 		}
 	}
 
@@ -62,10 +124,10 @@ namespace winrt::File_Binder::implementation
 	) {
 		// convert the file paths from hstring to string
 		::std::vector<::std::string> files;
-		for (const auto& fileII : listViewFiles().Items()) {
-			const auto& fileH = fileII.try_as<::winrt::hstring>();
-			if (fileH) {
-				files.push_back(::winrt::to_string(*fileH));
+		for (uint32_t i = 0; i < listViewFiles().Items().Size(); i++) {
+			const auto& fileH = GetFilePath(this, i);
+			if (!fileH.empty()) {
+				files.push_back(::winrt::to_string(fileH));
 			}
 		}
 
@@ -87,7 +149,7 @@ namespace winrt::File_Binder::implementation
 				// because the progress ring is a part of UI and we update it
 				// needs to run on the main thread (UI thread) so here we go
 				DispatcherQueue().TryEnqueue([=] {
-					progressRing().Value((float)fileBindedCount / fileCount * 100.f);
+					progressBar().Value((double)fileBindedCount / fileCount * 100.);
 				});
 			}
 			);
@@ -139,6 +201,6 @@ namespace winrt::File_Binder::implementation
 		textBlockPathSaveAs().Text(L"");
 
 		// reset the progress ring value
-		progressRing().Value(0);
+		progressBar().Value(0);
 	}
 }

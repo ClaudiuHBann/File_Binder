@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "MainWindow.xaml.h"
 
-#define SEPARATOR "*****"
+#define SEPARATOR "Fj*GS%cM_WD2Pb&7BdhcdmE.Z$*D[y2SMYSYmBi:f+wYJjaZVgSYG!vb.c![F4ArC+:P?"
 
 class Utility
 {
@@ -99,41 +99,55 @@ public:
 		str.assign((::std::istreambuf_iterator<char>(ifs)), ::std::istreambuf_iterator<char>());
 	}
 
-	// Gets the unix timestamp in miliseconds
-	static inline ::int64_t GetTimestampInMs() {
-		// pretty straight forward
-		const auto timestamp = ::std::chrono::system_clock::now().time_since_epoch();
-		const auto timestampInMs = ::std::chrono::duration_cast<::std::chrono::milliseconds>(timestamp);
-
-		return timestampInMs.count();
-	}
-
 	// Converts a string in a wide string
 	static inline ::std::wstring StringToWString(const ::std::string& str) {
 		return ::std::wstring(str.begin(), str.end());
 	}
 
+	// Gets the file name and extension from the specified path
+	static inline ::std::string GetFileFromPath(const ::std::string& Path) {
+		const auto posBackslash = Path.rfind('\\');
+		return posBackslash == ::std::string::npos ? Path : Path.substr(posBackslash + 1);
+	}
+
 	// Binds all the 'files' and 'fileOpener' into 'fileBinded'
+	// and calls 'callback' after every written file with the file's index
 	static void Bind(
 		const ::std::vector<::std::string>& files,
 		const ::std::string& fileBinded,
 		const ::std::string& fileOpener,
-		const ::std::function<void(::std::uint8_t fileBindedCount)> callback
+		const ::std::function<void(::std::uint8_t fileBindedCount)>& callback
 	) {
-		// open the file as binary and write the opener first + separator
+		// open the file as binary and write the opener first
 		::std::ofstream ofs(fileBinded, ::std::ios::binary);
-		ofs << ::std::ifstream(fileOpener, ::std::ios::binary).rdbuf() << SEPARATOR;
+		ofs << ::std::ifstream(fileOpener, ::std::ios::binary).rdbuf();
 
-		// write all the files + separators
-		::size_t index = files.size();
+		// write all the files like this : separator + file (name and extension) + separator + file
+		uint8_t fileIndex = 1;
 		for (const auto& file : files) {
-			ofs << ::std::ifstream(file, ::std::ios::binary).rdbuf();
+			ofs << SEPARATOR << GetFileFromPath(file) << SEPARATOR << ::std::ifstream(file, ::std::ios::binary).rdbuf();
+			callback(fileIndex++);
+		}
+	}
 
-			callback((uint8_t)(files.size() - index + 1));
+	// Changes the 'file' name with a valid file name
+	void FindFileNameCopy(::std::string& file) {
+		size_t copyCount = 1;
+		while (::std::filesystem::exists(file)) {
+			// create last and current file name trail
+			const ::std::string replaceCurrent(" (" + ::std::to_string(copyCount) + ')');
+			const ::std::string replaceLast(" (" + ::std::to_string(copyCount - 1) + ')');
 
-			if (--index) {
-				ofs << SEPARATOR;
+			// get the position to overwrite and how much to overwrite
+			auto replacePos = file.rfind(replaceLast);
+			auto replaceCount = replaceLast.length();
+			if (copyCount++ == 1) {
+				replacePos = file.rfind('.');
+				replaceCount = 0;
 			}
+
+			// change the file name itself
+			file.replace(replacePos, replaceCount, replaceCurrent);
 		}
 	}
 

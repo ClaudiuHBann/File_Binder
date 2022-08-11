@@ -9,21 +9,32 @@
 namespace winrt::File_Binder::implementation
 {
 	// A small wrapper to create a ColumnDefinition object
-	::winrt::Microsoft::UI::Xaml::Controls::ColumnDefinition CreateDefinitionColumn(const double width) {
+	::winrt::Microsoft::UI::Xaml::Controls::ColumnDefinition CreateDefinitionColumn(
+		const double width,
+		::winrt::Microsoft::UI::Xaml::GridUnitType unitType = ::winrt::Microsoft::UI::Xaml::GridUnitType::Star
+	) {
 		::winrt::Microsoft::UI::Xaml::Controls::ColumnDefinition definitionColumn;
-		definitionColumn.Width({ width });
+		definitionColumn.Width({ width, unitType });
 
 		return definitionColumn;
 	}
 
 	// A small wrapper to create a Thickness object
-	::winrt::Microsoft::UI::Xaml::Thickness CreateThickness(const double left = 0., const double top = 0., const double right = 0., const double bottom = 0.) {
+	::winrt::Microsoft::UI::Xaml::Thickness CreateThickness(
+		const double left = 0.,
+		const double top = 0.,
+		const double right = 0.,
+		const double bottom = 0.
+	) {
 		::winrt::Microsoft::UI::Xaml::Thickness thickness{ left, top, right, bottom };
 		return thickness;
 	}
 
 	// Get the file path from the list view item
-	::winrt::hstring GetFilePath(::winrt::File_Binder::implementation::MainWindow* mainWindow, const uint32_t index) {
+	::winrt::hstring GetFilePath(
+		::winrt::File_Binder::implementation::MainWindow* mainWindow,
+		const uint32_t index
+	) {
 		// get, convert, get, convert, get, convert and finally get the text
 		const auto& ii = mainWindow->listViewFiles().ContainerFromIndex(index);
 		const auto& listViewItem = ii.try_as<::winrt::Microsoft::UI::Xaml::Controls::ListViewItem>();
@@ -35,8 +46,25 @@ namespace winrt::File_Binder::implementation
 		return textBlock.Text();
 	}
 
+	void MainWindow::OnClickButtonClearAll(
+		::winrt::Windows::Foundation::IInspectable const& /*sender*/,
+		::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& /*args*/
+	) {
+		listViewFiles().Items().Clear();
+	}
+
+	void MainWindow::OnClickButtonReset(
+		::winrt::Windows::Foundation::IInspectable const& /*sender*/,
+		::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& /*args*/
+	) {
+		Reset();
+	}
+
 	// Create a listviewitem and append it
-	::winrt::Windows::Foundation::IAsyncAction AddItemToListView(::winrt::File_Binder::implementation::MainWindow* mainWindow, ::winrt::hstring filePath) {
+	::winrt::Windows::Foundation::IAsyncAction MainWindow::AddItemToListView(
+		::winrt::File_Binder::implementation::MainWindow* mainWindow,
+		::winrt::hstring filePath
+	) {
 		// File icon
 		::winrt::Microsoft::UI::Xaml::Controls::Image icon;
 		// set size
@@ -52,16 +80,32 @@ namespace winrt::File_Binder::implementation
 		path.VerticalAlignment(::winrt::Microsoft::UI::Xaml::VerticalAlignment::Center);
 		path.Padding(CreateThickness(10.));
 
+		// create a button to remove the items from the list
+		::winrt::Microsoft::UI::Xaml::Controls::Button remove;
+		// set the on click event and align it to right
+		remove.Click([&](const auto& sender, const auto& args) {
+			OnClickListViewItemButtonRemove(sender, args);
+		});
+
+		// create an icon for the remove button and set it
+		::winrt::Microsoft::UI::Xaml::Controls::FontIcon removeIcon;
+		removeIcon.Glyph(L"\uE10A");
+		remove.Content(removeIcon);
+
 		// create a layout 
 		::winrt::Microsoft::UI::Xaml::Controls::Grid layout;
 		// set the column definitions of the layout
 		layout.ColumnDefinitions().Append(CreateDefinitionColumn(10));
-		layout.ColumnDefinitions().Append(CreateDefinitionColumn(90));
+		layout.ColumnDefinitions().Append(CreateDefinitionColumn(80));
+		layout.ColumnDefinitions().Append(CreateDefinitionColumn(10));
 		// add the children to the layout
 		layout.Children().Append(icon);
 
 		layout.Children().Append(path);
 		layout.SetColumn(path, 1);
+
+		layout.Children().Append(remove);
+		layout.SetColumn(remove, 2);
 
 		// create the list view item and set it's content to out layout
 		::winrt::Microsoft::UI::Xaml::Controls::ListViewItem item;
@@ -150,6 +194,7 @@ namespace winrt::File_Binder::implementation
 				// needs to run on the main thread (UI thread) so here we go
 				DispatcherQueue().TryEnqueue([=] {
 					progressBar().Value((double)fileBindedCount / fileCount * 100.);
+					progressProcent().Text(to_hstring((uint8_t)progressBar().Value()) + L" %");
 				});
 			}
 			);
@@ -191,16 +236,34 @@ namespace winrt::File_Binder::implementation
 		}
 	}
 
+	void MainWindow::OnClickListViewItemButtonRemove(
+		::winrt::Windows::Foundation::IInspectable const& sender,
+		::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& /*args*/
+	) {
+		auto lvi = sender
+			.try_as<::winrt::Microsoft::UI::Xaml::Controls::Button>()
+			.Parent()
+			.try_as<::winrt::Microsoft::UI::Xaml::Controls::Grid>()
+			.Parent()
+			.try_as<::winrt::Microsoft::UI::Xaml::Controls::ListViewItem>();
+
+		uint32_t lviIndex;
+		listViewFiles().Items().IndexOf(lvi, lviIndex);
+
+		listViewFiles().Items().RemoveAt(lviIndex);
+	}
+
 	void MainWindow::Reset() {
 		// delete all the files paths, show the the list of paths placeholder
 		listViewFiles().Items().Clear();
 		textBlockListViewFilesPlaceholder().Visibility(::winrt::Microsoft::UI::Xaml::Visibility::Visible);
 
 		// and remove the opener and clear the opener and output file paths
-		textBlockPathOpener().Text(L"");
 		textBlockPathSaveAs().Text(L"");
+		/*textBlockPathOpener().Text(L"");*/
 
-		// reset the progress ring value
+		// reset the progress bar and procent value
 		progressBar().Value(0);
+		progressProcent().Text(L"0 %");
 	}
 }

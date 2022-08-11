@@ -7,7 +7,7 @@
     mc:Ignorable="d">
 
     <!-- Main Layout -->
-    <Grid Background="AntiqueWhite"
+    <Grid Background="GhostWhite"
           AllowDrop="True"
           DragEnter="OnDragEnterGrid"
           Drop="OnDropGrid">
@@ -25,15 +25,34 @@
                 <RowDefinition Height="90*" />
             </Grid.RowDefinitions>
 
-            <TextBlock Text="The following files are going to be binded:"
-                       VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       FontSize="18"
-                       Padding="25,0,0,0" />
+            <Grid>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="15*" />
+                    <ColumnDefinition Width="70*" />
+                    <ColumnDefinition Width="15*" />
+                </Grid.ColumnDefinitions>
+
+                <Button Content="Reset All"
+                        Click="OnClickButtonReset"
+                        HorizontalAlignment="Stretch" />
+
+                <TextBlock Text="The following files are going to be binded:"
+                           Grid.Column="1"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           FontSize="18" />
+
+                <Button Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        Content="Clear All"
+                        Click="OnClickButtonClearAll" />
+
+            </Grid>
 
             <ListView x:Name="listViewFiles"
                       Grid.Row="1"
-                      Background="WhiteSmoke" />
+                      Background="White" />
 
             <TextBlock x:Name="textBlockListViewFilesPlaceholder"
                        Text="Drop some files in the window area..."
@@ -109,12 +128,26 @@
                         HorizontalAlignment="Stretch"
                         Click="OnClickButtonBind" />
 
-                <ProgressBar x:Name="progressBar"
-                              Grid.Column="1"
-                              IsIndeterminate="False"
-                              Padding="5,0,10,0"
-                              Value="100"
-                              Maximum="100" />
+                <Grid Grid.Column="1">
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="90*"/>
+                        <ColumnDefinition Width="10*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ProgressBar x:Name="progressBar"
+                                 Padding="5,0,10,0"
+                                 Value="100"
+                                 Maximum="100" />
+
+                    <TextBlock x:Name="progressProcent"
+                               Grid.Column="1"
+                               Text="100 %"
+                               Padding="0,0,10,0"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+
+                </Grid>
 
             </Grid>
 

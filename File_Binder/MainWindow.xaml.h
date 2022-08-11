@@ -8,6 +8,16 @@ namespace winrt::File_Binder::implementation
 	{
 		MainWindow();
 
+		void OnClickButtonClearAll(
+			::winrt::Windows::Foundation::IInspectable const& sender,
+			::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args
+		);
+
+		void OnClickButtonReset(
+			::winrt::Windows::Foundation::IInspectable const& sender,
+			::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args
+		);
+
 		void OnDragEnterGrid(
 			::winrt::Windows::Foundation::IInspectable const& sender,
 			::winrt::Microsoft::UI::Xaml::DragEventArgs const& args
@@ -33,7 +43,17 @@ namespace winrt::File_Binder::implementation
 			::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args
 		);
 
+		void OnClickListViewItemButtonRemove(
+			::winrt::Windows::Foundation::IInspectable const& sender,
+			::winrt::Microsoft::UI::Xaml::RoutedEventArgs const& args
+		);
+
 	private:
+		::winrt::Windows::Foundation::IAsyncAction AddItemToListView(
+			::winrt::File_Binder::implementation::MainWindow* mainWindow,
+			::winrt::hstring filePath
+		);
+
 		void Reset();
 
 		HWND hWnd = nullptr;
